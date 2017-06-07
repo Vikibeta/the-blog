@@ -1,0 +1,27 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+	<div class="container">
+		<ul class="nav navbar-nav">
+	        <li><a class="navbar-brand" href="/" title="首页">首页</a></li>
+	        <% if(user){ %>
+	        <li><a class="navbar-brand" href="/upload" title="上传">上传</a></li>
+	        <li><a class="navbar-brand" href="/post" title="发布">发布</a></li>
+	        <% } else { %>
+	        <li><a class="navbar-brand" href="/login" title="登录">登录</a></li>
+	        <li><a class="navbar-brand" href="/reg" title="注册">注册</a></li>
+	        <% } %>
+	    </ul>
+	    <ul class="nav navbar-nav navbar-right">
+	    	<% if(user){ %>
+	    		<% if(user.ops){  %>
+	        		<li><span class="navbar-brand">您好，<%= user.ops[0].name %>!</span></li>
+	        	<% } else { %>
+	        		<li><span class="navbar-brand">您好，<%= user.name %>!</span></li>
+	        	<% } %>
+	        	<li><a class="navbar-brand" href="/logout" title="退出">退出</a></li>
+	        <% } %>
+      	</ul>
+	</div>
+</nav>
+<div class="page-header">
+	<h1><%= title %></h1>
+</div>

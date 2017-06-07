@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <%- include("partials/include.ejs") %>
+  </head>
+  <body>
+  	<%- include("partials/header.ejs") %>
+    <% if(posts) { %>
+      <% posts.forEach(function(post, index){ %>
+        <p><h2><%= post.title %></h2></p>
+        <p class="info">
+          作者：<%= post.name %>
+        </p>
+        <p class="info">
+          日期：<%= post.time.minute %>
+        </p>
+        <div><%- post.post %></div>
+      <% }) %>
+    <% } %>
+    <%- include("partials/footer.ejs") %>
+  </body>
+</html>
