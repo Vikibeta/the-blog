@@ -1,5 +1,6 @@
 //获取数据库实例
-var mongodb = require('./db');
+var MongoClient = require('./db'),
+    assert = require('assert');
 //引入markdown方法
 var markdown = require('markdown').markdown;
 
@@ -8,44 +9,37 @@ function Post(name, title, post) {
     this.title = title;
     this.post = post;
 }
-exports = Post;
+module.exports = Post;
 
 //读取文章及其相关信息
 Post.getAll = function(name, callback) {
-    //打开数据库
-    mongodb.open(function(err, db) {
-        if (err) {
-            return callback(err);
+    MongoClient('posts', function(db, collection) {
+        var query = {};
+        if (name) {
+            query.name = name;
         }
-        //读取 posts 集合
-        db.collection('posts', function(err, collection) {
+
+        if (name === null) {
+            return callback(null); //失败！返回 err
+        }
+
+        //根据 query 对象查询文章
+        collection.find(query).sort({
+            time: -1 //根据时间排序，正数升序，负数降序
+        }).toArray(function(err, docs) {
             if (err) {
-                mongodb.close();
-                return callback(err);
+                return callback(err); //失败！返回 err
             }
-            var query = {};
-            if (name) {
-                query.name = name;
-            }
-            if (name === null) {
-                return callback(null); //失败！返回 err
-            }
-            //根据 query 对象查询文章
-            collection.find(query).sort({
-                time: -1 //根据时间排序，正数升序，负数降序
-            }).toArray(function(err, docs) {
-                mongodb.close();
-                if (err) {
-                    return callback(err); //失败！返回 err
-                }
-                docs.forEach(function(doc) {
-                    doc.post = markdown.toHTML(doc.post);
-                })
-                callback(null, docs); //成功！以数组形式返回查询的结果
-            });
+            docs.forEach(function(doc) {
+                doc.post = markdown.toHTML(doc.post);
+            })
+            callback(null, docs); //成功！以数组形式返回查询的结果
+
+            db.close();
         });
-    });
-};
+    })
+}
+
 //存储一篇文章及其相关信息
 Post.prototype.save = function(callback) {
     var date = new Date();
@@ -66,26 +60,17 @@ Post.prototype.save = function(callback) {
         post: this.post
     };
     //打开数据库
-    mongodb.open(function(err, db) {
-        if (err) {
-            return callback(err);
-        }
-        //读取 posts 集合
-        db.collection('posts', function(err, collection) {
+    //读取 posts 集合
+    MongoClient('posts', function(db, collection) {
+        //将文档插入 posts 集合
+        collection.insert(post, {
+            safe: true
+        }, function(err) {
+            db.close();
             if (err) {
-                mongodb.close();
-                return callback(err);
+                return callback(err); //失败！返回 err
             }
-            //将文档插入 posts 集合
-            collection.insert(post, {
-                safe: true
-            }, function(err) {
-                mongodb.close();
-                if (err) {
-                    return callback(err); //失败！返回 err
-                }
-                callback(null); //返回 err 为 null
-            });
+            callback(null); //返回 err 为 null
         });
     });
 };
